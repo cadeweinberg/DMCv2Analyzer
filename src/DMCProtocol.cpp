@@ -86,22 +86,22 @@ void DecodeFields(Packet& p)
         if (p.type == 0x0038) { AddDword(p, data, o, "MaxVelocity"); AddDword(p, data, o, "MaxAcceleration"); }
         if (p.type == 0x0039) { AddByte(p, data, o, "LowerEnable"); AddDword(p, data, o, "LowerLimit"); AddByte(p, data, o, "UpperEnable"); AddDword(p, data, o, "UpperLimit"); AddByte(p, data, o, "HardwareLimitSet"); }
         break;
-    case 0x0034: AddDword(p, data, o, "MoveTime"); while (o + 4 <= data.size()) AddSignedDword(p, data, o, "MotorPosition"); break;
+    case 0x0034: { AddDword(p, data, o, "MoveTime"); size_t index = 1; while (o + 4 <= data.size()) AddSignedDword(p, data, o, "MotorPosition" + std::to_string(index++)); break; }
     case 0x0036: AddByte(p, data, o, "Motor"); AddWord(p, data, o, "Speed"); AddSignedDword(p, data, o, "Destination"); break;
     case 0x003A: AddByte(p, data, o, "Reason"); AddByte(p, data, o, "Motor"); break;
     case 0x0100: AddDword(p, data, o, "StartFrame"); AddDword(p, data, o, "EndFrame"); break;
-    case 0x0101: AddByte(p, data, o, "Motor"); AddDword(p, data, o, "StartIndex"); while (o + 4 <= data.size()) AddDword(p, data, o, "Position"); break;
-    case 0x0102: AddWord(p, data, o, "Channel"); AddDword(p, data, o, "StartIndex"); while (o < data.size()) AddByte(p, data, o, "Level"); break;
-    case 0x0104: AddDword(p, data, o, "Mask"); while (o + 8 <= data.size()) { AddDword(p, data, o, "Frame"); AddDword(p, data, o, "Values"); } break;
+    case 0x0101: { AddByte(p, data, o, "Motor"); AddDword(p, data, o, "StartIndex"); size_t index = 1; while (o + 4 <= data.size()) AddDword(p, data, o, "Position" + std::to_string(index++)); break; }
+    case 0x0102: { AddWord(p, data, o, "Channel"); AddDword(p, data, o, "StartIndex"); size_t index = 1; while (o < data.size()) AddByte(p, data, o, "Level" + std::to_string(index++)); break; }
+    case 0x0104: { AddDword(p, data, o, "Mask"); size_t index = 1; while (o + 8 <= data.size()) { AddDword(p, data, o, "Frame" + std::to_string(index)); AddDword(p, data, o, "Values" + std::to_string(index++)); } break; }
     case 0x0110: case 0x0120: AddDword(p, data, o, "Frame"); break;
     case 0x0111: AddDword(p, data, o, "FPS"); AddDword(p, data, o, "StartFrame"); AddDword(p, data, o, "EndFrame"); AddDword(p, data, o, "PreRollTime"); AddDword(p, data, o, "PostRollTime"); AddByte(p, data, o, "SyncDMX"); AddDword(p, data, o, "BloopLocation"); AddWord(p, data, o, "BloopDMXChannel"); AddWord(p, data, o, "BloopTime"); AddWord(p, data, o, "Flags"); break;
-    case 0x0112: AddDword(p, data, o, "Frame"); AddByte(p, data, o, "Direction"); AddDword(p, data, o, "ExposureTime"); AddWord(p, data, o, "BlurPercent"); while (o + 9 <= data.size()) { AddByte(p, data, o, "Motor"); AddSignedDword(p, data, o, "PositionA"); AddSignedDword(p, data, o, "PositionB"); } break;
-    case 0x0115: AddDword(p, data, o, "Frame"); AddDword(p, data, o, "ExposureTime"); AddWord(p, data, o, "OpenAngle"); AddWord(p, data, o, "CloseAngle"); while (o + 9 <= data.size()) { AddByte(p, data, o, "Motor"); AddSignedDword(p, data, o, "PositionA"); AddSignedDword(p, data, o, "PositionB"); } break;
+    case 0x0112: { AddDword(p, data, o, "Frame"); AddByte(p, data, o, "Direction"); AddDword(p, data, o, "ExposureTime"); AddWord(p, data, o, "BlurPercent"); size_t index = 1; while (o + 9 <= data.size()) { AddByte(p, data, o, "Motor" + std::to_string(index)); AddSignedDword(p, data, o, "PositionA" + std::to_string(index)); AddSignedDword(p, data, o, "PositionB" + std::to_string(index++)); } break; }
+    case 0x0115: { AddDword(p, data, o, "Frame"); AddDword(p, data, o, "ExposureTime"); AddWord(p, data, o, "OpenAngle"); AddWord(p, data, o, "CloseAngle"); size_t index = 1; while (o + 9 <= data.size()) { AddByte(p, data, o, "Motor" + std::to_string(index)); AddSignedDword(p, data, o, "PositionA" + std::to_string(index)); AddSignedDword(p, data, o, "PositionB" + std::to_string(index++)); } break; }
     case 0x0200: AddByte(p, data, o, "VirtualType"); break;
     case 0x0201: AddByte(p, data, o, "VirtualMotor"); AddDword(p, data, o, "Position"); break;
     case 0x0202: AddByte(p, data, o, "VirtualMotor"); break;
     case 0x0203: AddByte(p, data, o, "Motor"); AddWord(p, data, o, "Speed"); AddDword(p, data, o, "Destination"); break;
-    case 0x0205: while (o + 4 <= data.size()) AddDword(p, data, o, "VirtualPosition"); if (o < data.size()) AddByte(p, data, o, "AimPointEnabled"); break;
+    case 0x0205: { size_t index = 1; while (o + 4 <= data.size()) AddDword(p, data, o, "VirtualPosition" + std::to_string(index++)); if (o < data.size()) AddByte(p, data, o, "AimPointEnabled"); break; }
     case 0x0206: AddByte(p, data, o, "Axis"); AddWord(p, data, o, "Speed"); break;
     case 0x0207: AddByte(p, data, o, "Enable"); AddDword(p, data, o, "AimX"); AddDword(p, data, o, "AimY"); AddDword(p, data, o, "AimZ"); break;
     default: break;
