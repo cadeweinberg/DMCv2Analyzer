@@ -6,7 +6,6 @@ DMCAnalyzer::DMCAnalyzer()
 :	Analyzer2(),  
 	mSettings(),
 	mSerial(nullptr),
-	mSamplesPerBit(0),
 	mSimulationInitilized( false )
 {
 	SetAnalyzerSettings( &mSettings );
@@ -35,9 +34,7 @@ void DMCAnalyzer::WorkerThread()
 	if( mSerial->GetBitState() == BIT_LOW )
 		mSerial->AdvanceToNextEdge();
 
-	mSamplesPerBit = sample_rate_hz / mSettings.mBitRate;
-	if( mSamplesPerBit == 0 ) mSamplesPerBit = 1;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( sample_rate_hz ) / double( mSettings.mBitRate ) );
+	const double samples_per_bit = double( sample_rate_hz ) / double( mSettings.mBitRate );
 	DMCProtocol::StreamParser parser;
 
 	for( ; ; )
@@ -47,21 +44,22 @@ void DMCAnalyzer::WorkerThread()
 
 		U64 starting_sample = mSerial->GetSampleNumber();
 
-		mSerial->Advance( samples_to_first_center_of_first_data_bit );
-
 		U8 data = 0;
 		for( U32 i=0; i<8; i++ )
 		{
+			// Use absolute, rounded positions instead of repeatedly advancing by
+			// truncated samples_per_bit. This prevents baud/sample-rate drift.
+			const U64 bit_center = starting_sample + static_cast<U64>((i + 1.5) * samples_per_bit + 0.5);
+			mSerial->AdvanceToAbsPosition( bit_center );
 			//let's put a dot exactly where we sample this bit:
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings.mInputChannel );
 
 			// Standard asynchronous UART transmits each byte least-significant bit first.
 			if( mSerial->GetBitState() == BIT_HIGH ) data |= static_cast<U8>(1 << i);
-
-			mSerial->Advance( mSamplesPerBit );
 		}
 		// Stop bit is sampled one bit after the final data bit.
-		mSerial->Advance( mSamplesPerBit );
+		const U64 stop_center = starting_sample + static_cast<U64>(9.5 * samples_per_bit + 0.5);
+		mSerial->AdvanceToAbsPosition( stop_center );
 		U64 ending_sample = mSerial->GetSampleNumber();
 		DMCProtocol::ByteSample byte{ data, starting_sample, ending_sample, mSerial->GetBitState() != BIT_HIGH };
 		std::vector<DMCProtocol::Packet> packets;

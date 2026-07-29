@@ -27,7 +27,6 @@ protected: //vars
 	DMCAnalyzerSettings mSettings;
 	std::unique_ptr<DMCAnalyzerResults> mResults;
 	AnalyzerChannelData* mSerial;
-	U32 mSamplesPerBit;
 
 	DMCSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
