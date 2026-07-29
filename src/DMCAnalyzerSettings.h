@@ -18,10 +18,12 @@ public:
 	
 	Channel mInputChannel;
 	U32 mBitRate;
+	bool mShowSerialBytes;
 
 protected:
 	AnalyzerSettingInterfaceChannel	mInputChannelInterface;
 	AnalyzerSettingInterfaceInteger	mBitRateInterface;
+	AnalyzerSettingInterfaceBool mShowSerialBytesInterface;
 };
 
 #endif //DMC_ANALYZER_SETTINGS

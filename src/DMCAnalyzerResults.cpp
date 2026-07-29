@@ -38,6 +38,7 @@ void DMCAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, 
 
 void DMCAnalyzerResults::AddByteResult( const DMCProtocol::ByteSample& byte )
 {
+	if (mSettings->mShowSerialBytes == false) return;
 #ifdef LOGIC2
 	FrameV2 frame;
 	frame.AddByte( "Data", byte.value );
