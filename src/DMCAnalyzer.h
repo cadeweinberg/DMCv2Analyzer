@@ -8,7 +8,7 @@
 #include "DMCProtocol.h"
 #include <memory>
 
-class ANALYZER_EXPORT DMCAnalyzer : public Analyzer2
+class DMCAnalyzer : public Analyzer2
 {
 public:
 	DMCAnalyzer();
