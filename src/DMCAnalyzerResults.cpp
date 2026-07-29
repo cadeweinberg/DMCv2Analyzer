@@ -32,6 +32,14 @@ void DMCAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, 
 void DMCAnalyzerResults::AddPacket( const DMCProtocol::Packet& packet )
 {
 	mPackets.push_back(packet);
+	// FrameV1 is still required for waveform bubbles and the legacy export path.
+	Frame legacy_frame;
+	legacy_frame.mStartingSampleInclusive = packet.start_sample;
+	legacy_frame.mEndingSampleInclusive = packet.end_sample;
+	legacy_frame.mData1 = packet.type;
+	legacy_frame.mData2 = packet.id;
+	legacy_frame.mFlags = (packet.checksum_valid && !packet.framing_error && !packet.truncated) ? 0 : DISPLAY_AS_ERROR_FLAG;
+	AddFrame( legacy_frame );
 #ifdef LOGIC2
 	FrameV2 frame;
 	frame.AddInteger( "ID", packet.id );
@@ -48,13 +56,6 @@ void DMCAnalyzerResults::AddPacket( const DMCProtocol::Packet& packet )
 	AddFrameV2( frame, "DMC", packet.start_sample, packet.end_sample );
 	CommitResults();
 #else
-	Frame frame;
-	frame.mStartingSampleInclusive = packet.start_sample;
-	frame.mEndingSampleInclusive = packet.end_sample;
-	frame.mData1 = packet.type;
-	frame.mData2 = packet.id;
-	frame.mFlags = packet.checksum_valid ? 0 : DISPLAY_AS_ERROR_FLAG;
-	AddFrame( frame );
 	CommitResults();
 #endif
 }

@@ -8,6 +8,7 @@ DMCAnalyzer::DMCAnalyzer()
 	mSimulationInitilized( false )
 {
 	SetAnalyzerSettings( &mSettings );
+	UseFrameV2();
 }
 
 DMCAnalyzer::~DMCAnalyzer()
@@ -21,7 +22,6 @@ void DMCAnalyzer::SetupResults()
 	mResults.reset(new DMCAnalyzerResults( this, &mSettings ));
 	SetAnalyzerResults( mResults.get() );
 	mResults->AddChannelBubblesWillAppearOn( mSettings.mInputChannel );
-	UseFrameV2();
 }
 
 void DMCAnalyzer::WorkerThread()
