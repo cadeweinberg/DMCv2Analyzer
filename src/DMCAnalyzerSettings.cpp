@@ -4,7 +4,7 @@
 
 DMCAnalyzerSettings::DMCAnalyzerSettings()
 :	mInputChannel( UNDEFINED_CHANNEL ),
-	mBitRate( 9600 ),
+	mBitRate( 115200 ),
 	mInputChannelInterface(),
 	mBitRateInterface()
 {

@@ -46,6 +46,7 @@ void DMCAnalyzerResults::AddPacket( const DMCProtocol::Packet& packet )
 	for( std::vector<DMCProtocol::Field>::const_iterator it = packet.fields.begin(); it != packet.fields.end(); ++it )
 		frame.AddString( it->key.c_str(), it->value.c_str() );
 	AddFrameV2( frame, "DMC", packet.start_sample, packet.end_sample );
+	CommitResults();
 #else
 	Frame frame;
 	frame.mStartingSampleInclusive = packet.start_sample;
