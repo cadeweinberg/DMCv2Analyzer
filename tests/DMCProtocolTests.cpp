@@ -51,6 +51,17 @@ int main()
     Packet framing_packet = ParsePacket(framing);
     assert(framing_packet.framing_error && framing_packet.status == "framing error");
 
+    std::vector<U8> virtual_config(1 + 6 * 12 + 5 * 4, 0);
+    virtual_config[0] = 1;
+    Packet virtual_packet = ParsePacket(Samples(MakePacket(3, 0x0200, virtual_config)));
+    assert(virtual_packet.type_name == "MSG_VIRT_CONFIG");
+    bool saw_boom_spu = false, saw_roll_position = false;
+    for (size_t i = 0; i < virtual_packet.fields.size(); ++i) {
+        saw_boom_spu = saw_boom_spu || virtual_packet.fields[i].key == "BoomSPU";
+        saw_roll_position = saw_roll_position || virtual_packet.fields[i].key == "RollPosition";
+    }
+    assert(saw_boom_spu && saw_roll_position);
+
     parser.Reset();
     for (size_t i = 0; i + 1 < raw.size(); ++i) parser.Push(ByteSample{raw[i], i, i + 1, false}, completed);
     completed.clear();

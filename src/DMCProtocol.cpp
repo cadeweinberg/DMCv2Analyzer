@@ -36,6 +36,19 @@ void AddDword(Packet& p, const std::vector<U8>& b, size_t& o, const std::string&
 void AddSignedDword(Packet& p, const std::vector<U8>& b, size_t& o, const std::string& key)
 { if (o + 4 <= b.size()) { Add(p, key, std::to_string(static_cast<S32>(Dword(b, o)))); o += 4; } }
 
+void AddDecimalDword(Packet& p, const std::vector<U8>& b, size_t& o, const std::string& key)
+{ if (o + 4 <= b.size()) { Add(p, key, std::to_string(Dword(b, o))); o += 4; } }
+
+void AddScaledDword(Packet& p, const std::vector<U8>& b, size_t& o, const std::string& key, double scale)
+{
+    if (o + 4 <= b.size()) {
+        std::ostringstream value;
+        value << std::fixed << std::setprecision(5) << (static_cast<double>(Dword(b, o)) / scale);
+        Add(p, key, value.str());
+        o += 4;
+    }
+}
+
 void AddByte(Packet& p, const std::vector<U8>& b, size_t& o, const std::string& key)
 { if (o < b.size()) { Add(p, key, Hex(b[o], 2)); ++o; } }
 
@@ -97,7 +110,36 @@ void DecodeFields(Packet& p)
     case 0x0111: AddDword(p, data, o, "FPS"); AddDword(p, data, o, "StartFrame"); AddDword(p, data, o, "EndFrame"); AddDword(p, data, o, "PreRollTime"); AddDword(p, data, o, "PostRollTime"); AddByte(p, data, o, "SyncDMX"); AddDword(p, data, o, "BloopLocation"); AddWord(p, data, o, "BloopDMXChannel"); AddWord(p, data, o, "BloopTime"); AddWord(p, data, o, "Flags"); break;
     case 0x0112: { AddDword(p, data, o, "Frame"); AddByte(p, data, o, "Direction"); AddDword(p, data, o, "ExposureTime"); AddWord(p, data, o, "BlurPercent"); size_t index = 1; while (o + 9 <= data.size()) { AddByte(p, data, o, "Motor" + std::to_string(index)); AddSignedDword(p, data, o, "PositionA" + std::to_string(index)); AddSignedDword(p, data, o, "PositionB" + std::to_string(index++)); } break; }
     case 0x0115: { AddDword(p, data, o, "Frame"); AddDword(p, data, o, "ExposureTime"); AddWord(p, data, o, "OpenAngle"); AddWord(p, data, o, "CloseAngle"); size_t index = 1; while (o + 9 <= data.size()) { AddByte(p, data, o, "Motor" + std::to_string(index)); AddSignedDword(p, data, o, "PositionA" + std::to_string(index)); AddSignedDword(p, data, o, "PositionB" + std::to_string(index++)); } break; }
-    case 0x0200: AddByte(p, data, o, "VirtualType"); break;
+    case 0x0200: {
+        AddByte(p, data, o, "VirtualType");
+        const char* axes[] = { "Boom", "Swing", "Track", "Pan", "Tilt", "Roll" };
+        U8 virtual_type = data.empty() ? 0 : data[0];
+        if (virtual_type == 1) {
+            for (size_t axis = 0; axis < 6; ++axis) {
+                AddDecimalDword(p, data, o, std::string(axes[axis]) + "Motor");
+                AddDecimalDword(p, data, o, std::string(axes[axis]) + "SPU");
+                AddScaledDword(p, data, o, std::string(axes[axis]) + "Position", 100000.0);
+            }
+            AddScaledDword(p, data, o, "BoomLength", 1000.0);
+            AddScaledDword(p, data, o, "BoomExtension", 1000.0);
+            AddScaledDword(p, data, o, "NodalOffsetX", 1000.0);
+            AddScaledDword(p, data, o, "NodalOffsetY", 1000.0);
+            AddScaledDword(p, data, o, "NodalOffsetZ", 1000.0);
+            // The compensation table is optional. If fewer than 121 DWORDs
+            // remain, the optional value is SafeDistance instead.
+            if (data.size() - o >= 121 * 4) {
+                for (size_t index = 0; index < 121; ++index)
+                    AddScaledDword(p, data, o, "BoomCompensation" + std::to_string(static_cast<int>(index) - 60), 1.0);
+            }
+            AddScaledDword(p, data, o, "SafeDistance", 1000.0);
+        } else if (virtual_type == 2) {
+            AddDecimalDword(p, data, o, "SwingMotor");
+            AddDecimalDword(p, data, o, "SwingSPU");
+            AddDecimalDword(p, data, o, "PanMotor");
+            AddDecimalDword(p, data, o, "PanSPU");
+        }
+        break;
+    }
     case 0x0201: AddByte(p, data, o, "VirtualMotor"); AddDword(p, data, o, "Position"); break;
     case 0x0202: AddByte(p, data, o, "VirtualMotor"); break;
     case 0x0203: AddByte(p, data, o, "Motor"); AddWord(p, data, o, "Speed"); AddDword(p, data, o, "Destination"); break;
