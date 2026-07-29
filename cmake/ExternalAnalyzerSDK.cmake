@@ -23,7 +23,7 @@ if(NOT TARGET Saleae::AnalyzerSDK)
     FetchContent_GetProperties(analyzersdk)
 
     if(NOT analyzersdk_POPULATED)
-        FetchContent_Populate(analyzersdk)
+        FetchContent_MakeAvailable(analyzersdk)
         include(${analyzersdk_SOURCE_DIR}/AnalyzerSDKConfig.cmake)
 
         if(APPLE OR WIN32)

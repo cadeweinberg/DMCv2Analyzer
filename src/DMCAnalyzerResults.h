@@ -1,16 +1,17 @@
-#ifndef SIMPLESERIAL_ANALYZER_RESULTS
-#define SIMPLESERIAL_ANALYZER_RESULTS
+#ifndef DMC_ANALYZER_RESULTS
+#define DMC_ANALYZER_RESULTS
 
 #include <AnalyzerResults.h>
+#include "DMCProtocol.h"
 
-class SimpleSerialAnalyzer;
-class SimpleSerialAnalyzerSettings;
+class DMCAnalyzer;
+class DMCAnalyzerSettings;
 
-class SimpleSerialAnalyzerResults : public AnalyzerResults
+class DMCAnalyzerResults : public AnalyzerResults
 {
 public:
-	SimpleSerialAnalyzerResults( SimpleSerialAnalyzer* analyzer, SimpleSerialAnalyzerSettings* settings );
-	virtual ~SimpleSerialAnalyzerResults();
+	DMCAnalyzerResults( DMCAnalyzer* analyzer, DMCAnalyzerSettings* settings );
+	virtual ~DMCAnalyzerResults();
 
 	virtual void GenerateBubbleText( U64 frame_index, Channel& channel, DisplayBase display_base );
 	virtual void GenerateExportFile( const char* file, DisplayBase display_base, U32 export_type_user_id );
@@ -18,12 +19,14 @@ public:
 	virtual void GenerateFrameTabularText(U64 frame_index, DisplayBase display_base );
 	virtual void GeneratePacketTabularText( U64 packet_id, DisplayBase display_base );
 	virtual void GenerateTransactionTabularText( U64 transaction_id, DisplayBase display_base );
+	void AddPacket( const DMCProtocol::Packet& packet );
 
 protected: //functions
 
 protected:  //vars
-	SimpleSerialAnalyzerSettings* mSettings;
-	SimpleSerialAnalyzer* mAnalyzer;
+	DMCAnalyzerSettings* mSettings;
+	DMCAnalyzer* mAnalyzer;
+	std::vector<DMCProtocol::Packet> mPackets;
 };
 
-#endif //SIMPLESERIAL_ANALYZER_RESULTS
+#endif //DMC_ANALYZER_RESULTS

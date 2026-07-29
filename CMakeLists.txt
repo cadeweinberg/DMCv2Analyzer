@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.13)
 
-project(SimpleSerialAnalyzer)
+project(DMCAnalyzer)
 
 add_definitions( -DLOGIC2 )
 
@@ -15,14 +15,21 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(ExternalAnalyzerSDK)
 
 set(SOURCES 
-src/SimpleSerialAnalyzer.cpp
-src/SimpleSerialAnalyzer.h
-src/SimpleSerialAnalyzerResults.cpp
-src/SimpleSerialAnalyzerResults.h
-src/SimpleSerialAnalyzerSettings.cpp
-src/SimpleSerialAnalyzerSettings.h
-src/SimpleSerialSimulationDataGenerator.cpp
-src/SimpleSerialSimulationDataGenerator.h
+src/DMCAnalyzer.cpp
+src/DMCAnalyzer.h
+src/DMCAnalyzerResults.cpp
+src/DMCAnalyzerResults.h
+src/DMCAnalyzerSettings.cpp
+src/DMCAnalyzerSettings.h
+src/DMCSimulationDataGenerator.cpp
+src/DMCSimulationDataGenerator.h
+src/DMCProtocol.cpp
+src/DMCProtocol.h
 )
 
 add_analyzer_plugin(${PROJECT_NAME} SOURCES ${SOURCES})
+
+enable_testing()
+add_executable(DMCProtocolTests tests/DMCProtocolTests.cpp src/DMCProtocol.cpp)
+target_include_directories(DMCProtocolTests PRIVATE src ${analyzersdk_SOURCE_DIR}/include)
+add_test(NAME DMCProtocolTests COMMAND DMCProtocolTests)
