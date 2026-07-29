@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 DMCAnalyzerResults::DMCAnalyzerResults( DMCAnalyzer* analyzer, DMCAnalyzerSettings* settings )
 :	AnalyzerResults(),
@@ -23,9 +24,15 @@ void DMCAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, 
 	ClearResultStrings();
 	if (frame_index < mPackets.size()) {
 		const DMCProtocol::Packet& p = mPackets[frame_index];
-		std::ostringstream s;
-		s << p.type_name << " 0x" << std::hex << p.id << " " << p.status;
-		AddResultString(s.str().c_str());
+		std::ostringstream header;
+		header << p.type_name << "  ID=0x" << std::hex << p.id << "  Length=" << std::dec << p.length << "  " << p.status;
+		AddResultString(header.str().c_str());
+
+		for (std::vector<DMCProtocol::Field>::const_iterator it = p.fields.begin(); it != p.fields.end(); ++it) {
+			std::string field = it->key + "=" + it->value;
+			AddResultString(field.c_str());
+		}
+
 	} else AddResultString( "DMC packet" );
 }
 
@@ -69,7 +76,6 @@ void DMCAnalyzerResults::AddPacket( const DMCProtocol::Packet& packet )
 	frame.AddString( "Direction", packet.direction.c_str() );
 	frame.AddBoolean( "ChecksumValid", packet.checksum_valid );
 	frame.AddBoolean( "FramingError", packet.framing_error );
-	frame.AddByteArray( "Raw", packet.raw.empty() ? 0 : &packet.raw[0], packet.raw.size() );
 	for( std::vector<DMCProtocol::Field>::const_iterator it = packet.fields.begin(); it != packet.fields.end(); ++it )
 		frame.AddString( it->key.c_str(), it->value.c_str() );
 	AddFrameV2( frame, "DMC", packet.start_sample, packet.end_sample );
@@ -86,7 +92,7 @@ void DMCAnalyzerResults::GenerateExportFile( const char* file, DisplayBase displ
 	U64 trigger_sample = mAnalyzer->GetTriggerSample();
 	U32 sample_rate = mAnalyzer->GetSampleRate();
 
-	file_stream << "Time [s],Message,ID,Type,Length,Status,ChecksumValid,Fields,Raw" << std::endl;
+	file_stream << "Time [s],Message,ID,Type,Length,Status,ChecksumValid,Fields" << std::endl;
 
 	U64 num_frames = mPackets.size();
 	for( U32 i=0; i < num_frames; i++ )
@@ -99,9 +105,7 @@ void DMCAnalyzerResults::GenerateExportFile( const char* file, DisplayBase displ
 			if (f) file_stream << ";";
 			file_stream << p.fields[f].key << "=" << p.fields[f].value;
 		}
-		file_stream << "\",\"";
-		for (size_t b = 0; b < p.raw.size(); ++b) file_stream << (b ? " " : "") << std::hex << std::uppercase << static_cast<unsigned>(p.raw[b]);
-		file_stream << std::dec << std::nouppercase << "\"" << std::endl;
+		file_stream << "\"" << std::endl;
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{
@@ -117,7 +121,14 @@ void DMCAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase 
 {
 #ifdef SUPPORTS_PROTOCOL_SEARCH
 	ClearTabularText();
-	if (frame_index < mPackets.size()) AddTabularText(mPackets[frame_index].type_name.c_str(), " ", mPackets[frame_index].status.c_str());
+	if (frame_index < mPackets.size()) {
+		const DMCProtocol::Packet& p = mPackets[frame_index];
+		std::ostringstream text;
+		text << p.type_name << " ID=0x" << std::hex << p.id << " Length=" << std::dec << p.length << " " << p.status;
+		for (std::vector<DMCProtocol::Field>::const_iterator it = p.fields.begin(); it != p.fields.end(); ++it)
+			text << " " << it->key << "=" << it->value;
+		AddTabularText(text.str().c_str());
+	}
 #endif
 }
 
