@@ -29,6 +29,25 @@ void DMCAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, 
 	} else AddResultString( "DMC packet" );
 }
 
+void DMCAnalyzerResults::AddByteResult( const DMCProtocol::ByteSample& byte )
+{
+#ifdef LOGIC2
+	FrameV2 frame;
+	frame.AddByte( "Data", byte.value );
+	frame.AddBoolean( "FramingError", byte.framing_error );
+	AddFrameV2( frame, "serial_byte", byte.start, byte.end );
+	CommitResults();
+#else
+	Frame frame;
+	frame.mStartingSampleInclusive = byte.start;
+	frame.mEndingSampleInclusive = byte.end;
+	frame.mData1 = byte.value;
+	frame.mFlags = byte.framing_error ? DISPLAY_AS_ERROR_FLAG : 0;
+	AddFrame( frame );
+	CommitResults();
+#endif
+}
+
 void DMCAnalyzerResults::AddPacket( const DMCProtocol::Packet& packet )
 {
 	mPackets.push_back(packet);

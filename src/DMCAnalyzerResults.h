@@ -19,6 +19,7 @@ public:
 	virtual void GenerateFrameTabularText(U64 frame_index, DisplayBase display_base );
 	virtual void GeneratePacketTabularText( U64 packet_id, DisplayBase display_base );
 	virtual void GenerateTransactionTabularText( U64 transaction_id, DisplayBase display_base );
+	void AddByteResult( const DMCProtocol::ByteSample& byte );
 	void AddPacket( const DMCProtocol::Packet& packet );
 
 protected: //functions

@@ -5,6 +5,8 @@
 DMCAnalyzer::DMCAnalyzer()
 :	Analyzer2(),  
 	mSettings(),
+	mSerial(nullptr),
+	mSamplesPerBit(0),
 	mSimulationInitilized( false )
 {
 	SetAnalyzerSettings( &mSettings );
@@ -63,6 +65,7 @@ void DMCAnalyzer::WorkerThread()
 		U64 ending_sample = mSerial->GetSampleNumber();
 		DMCProtocol::ByteSample byte{ data, starting_sample, ending_sample, mSerial->GetBitState() != BIT_HIGH };
 		std::vector<DMCProtocol::Packet> packets;
+		mResults->AddByteResult( byte );
 		parser.Push( byte, packets );
 		for( std::vector<DMCProtocol::Packet>::const_iterator it = packets.begin(); it != packets.end(); ++it )
 			mResults->AddPacket( *it );
