@@ -53,7 +53,8 @@ void DMCAnalyzer::WorkerThread()
 			//let's put a dot exactly where we sample this bit:
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings.mInputChannel );
 
-			if( mSerial->GetBitState() == BIT_HIGH ) data |= static_cast<U8>(1 << (7 - i));
+			// Standard asynchronous UART transmits each byte least-significant bit first.
+			if( mSerial->GetBitState() == BIT_HIGH ) data |= static_cast<U8>(1 << i);
 
 			mSerial->Advance( mSamplesPerBit );
 		}

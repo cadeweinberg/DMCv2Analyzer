@@ -74,7 +74,8 @@ void DMCSimulationDataGenerator::CreateSerialByte()
 	mSerialSimulationData.Transition();  //low-going edge for start bit
 	mSerialSimulationData.Advance( samples_per_bit );  //add start bit time
 
-	U8 mask = 0x1 << 7;
+	// Standard asynchronous UART transmits each byte least-significant bit first.
+	U8 mask = 0x1;
 	for( U32 i=0; i<8; i++ )
 	{
 		if( ( byte & mask ) != 0 )
@@ -83,7 +84,7 @@ void DMCSimulationDataGenerator::CreateSerialByte()
 			mSerialSimulationData.TransitionIfNeeded( BIT_LOW );
 
 		mSerialSimulationData.Advance( samples_per_bit );
-		mask = mask >> 1;
+		mask = static_cast<U8>(mask << 1);
 	}
 
 	mSerialSimulationData.TransitionIfNeeded( BIT_HIGH ); //we need to end high
